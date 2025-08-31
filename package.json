@@ -1,0 +1,19 @@
+{
+  "name": "p2pc",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "workspaces": [
+    "server",
+    "desktop",
+    "mobile"
+  ],
+  "scripts": {
+    "dev:server": "pnpm --filter server dev",
+    "dev:desktop": "pnpm --filter desktop dev",
+    "dev:mobile": "pnpm --filter mobile start",
+    "build": "pnpm -r build",
+    "start": "pnpm --filter server start"
+  }
+}
+
