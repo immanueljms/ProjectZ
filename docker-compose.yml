@@ -1,0 +1,51 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:15
+    container_name: p2pc_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-p2pc}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: p2pc_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  coturn:
+    image: instrumentisto/coturn
+    container_name: p2pc_coturn
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - TURN_REALM=${TURN_REALM:-p2pc.local}
+      - TURN_USER=${TURN_USER:-turnuser}
+      - TURN_PASSWORD=${TURN_PASSWORD:-turnpassword}
+    command: ["-c", "/etc/turnserver/turnserver.conf", "--no-cli"]
+    volumes:
+      - ./infra/turn/turnserver.conf:/etc/turnserver/turnserver.conf:ro
+    # Expose typical ports (host networking simplifies UDP traversal in local dev)
+    # Ports: 3478 (UDP/TCP), 5349 (TLS)
+    # With host network mode, explicit port mappings are unnecessary.
+
+volumes:
+  pgdata:
+
